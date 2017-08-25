@@ -1,0 +1,10 @@
+{
+    "name": "jpuminate/event-bus",
+    "authors": [
+        {
+            "name": "YassineX",
+            "email": "yassine.ouachhal@gmail.com"
+        }
+    ],
+    "require": {}
+}
