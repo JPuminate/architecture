@@ -1,0 +1,15 @@
+<?php
+
+namespace DummyNamespace;
+namespace DummyEventNamespace;
+
+use JPuminate\Contracts\EventBus\EventHandler;
+use JPuminate\Contracts\EventBus\Events\IntegrationEvent;
+
+class DummyClass implements EventHandler
+{
+
+    public function processEvent(DummyEventClass $event)
+    {
+    }
+}

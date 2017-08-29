@@ -60,6 +60,7 @@ class DefaultRabbitMQConnectionManager implements RabbitMQConnectionManager
                 return false;
             }
         }
+
         fclose($key);
     }
 

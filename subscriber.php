@@ -10,6 +10,7 @@ use JPuminate\Architecture\EventBus\Connections\DefaultConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultRabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\DefaultHandlerMaker;
 use JPuminate\Architecture\EventBus\EventBusRabbitMQ;
+use JPuminate\Architecture\EventBus\Events\EventBusWorkerEvent;
 use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
 
 
@@ -44,13 +45,15 @@ $event = new UserCreatedEvent(1, User::class);
 
 $eventbus = new EventBusRabbitMQ($connectionManager, $logger, $subscriptionManager, $handlerMaker);
 
-$eventbus->subscribe(UserCreatedEvent::class, UserCreatedEventHandler::class);
+
+
+$eventbus->subscribe(EventBusWorkerEvent::class, UserCreatedEventHandler::class);
 $eventbus->subscribe(UserDeletedEvent::class, UserCreatedEventHandler::class);
 $eventbus->subscribe(UserUpdatedEvent::class, UserCreatedEventHandler::class);
 
 
 
-$eventbus->listen();
+$eventbus->run();
 
 echo "pppp";
 

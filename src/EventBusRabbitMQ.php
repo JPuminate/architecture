@@ -19,7 +19,7 @@ use JPuminate\Contracts\EventBus\Subscriptions\SubscriptionManager;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Log\LoggerInterface;
 
-class EventBusRabbitMQ implements EventBus
+class EventBusRabbitMQ  implements EventBus
 {
 
     private static $PUBLISH_CHANNEL_ID = 2;
@@ -57,8 +57,9 @@ class EventBusRabbitMQ implements EventBus
         $this->connectionManager->tryConnect();
         $this->rabbit_subscribe_channel = $this->connectionManager->createChannel(static::$SUBSCRIBE_CHANNEL_ID);
         $this->subscription_key = $this->generateSubscriptionKey();
+
         register_shutdown_function(array($this, 'dispose'));
-        set_exception_handler(array($this, 'exception_handler'));
+        // set_exception_handler(array($this, 'exception_handler'));
     }
 
     public function subscribe($event, $handler)
@@ -91,7 +92,6 @@ class EventBusRabbitMQ implements EventBus
 
     public function dispose()
     {
-        echo "------dispose--------\n";
         if($this->rabbit_publish_channel) $this->rabbit_publish_channel->close();
         if($this->rabbit_subscribe_channel) $this->rabbit_subscribe_channel->close();
         $this->connectionManager->dispose();
@@ -100,7 +100,7 @@ class EventBusRabbitMQ implements EventBus
 
     public function __destruct()
     {
-       $this->dispose();
+        $this->dispose();
     }
 
     private function doInternalSubscription($event_key)
@@ -114,9 +114,13 @@ class EventBusRabbitMQ implements EventBus
         $this->rabbit_subscribe_channel->queue_declare($queue_name, false, true, true, false);
         $this->rabbit_subscribe_channel->queue_bind($queue_name, $ext);
         $callback = function (AMQPMessage $msg) {
-
-            $event = json_decode($msg->body);
-            $this->processEvent($event);
+            try {
+                $event = json_decode($msg->body);
+                $this->processEvent($event);
+            }
+            catch (\Exception $e){
+                $this->exception_handler($e);
+            }
         };
         $this->rabbit_subscribe_channel->basic_consume($queue_name, '', false, true, false, false, $callback);
     }
@@ -127,21 +131,25 @@ class EventBusRabbitMQ implements EventBus
         if (file_exists($path)) {
             $key = file_get_contents($path);
             if (empty($key)) $key = $this->subscriptionManager->getSubscriptionKey();
+            file_put_contents($path, $key);
         } else file_put_contents($path, $key = $this->subscriptionManager->getSubscriptionKey());
         return $key;
     }
 
     private function getSubscriptionQueueName($event_key){
-        return $this->subscriber_prefix.'.'.$this->subscription_key_file.'.'.$event_key;
+        return $this->subscriber_prefix.'.'.$this->subscription_key.'.'.$event_key;
     }
 
     private function getEventExchangeName($event){
-        if($event instanceof IntegrationEvent) $name = 'events.'.$event->getEventKey();
+
+        if($event instanceof IntegrationEvent) {
+            $name = 'events.'.$this->subscriptionManager->getEventKey($event);
+        }
         else $name = 'events.'.$event;
         return $name;
     }
 
-    public function listen(){
+    public function run(){
         if($this->rabbit_subscribe_channel){
             while(count($this->rabbit_subscribe_channel->callbacks)) {
                 $this->rabbit_subscribe_channel->wait();
@@ -162,7 +170,7 @@ class EventBusRabbitMQ implements EventBus
         }
     }
 
-    public function exception_handler(\Exception $e){
+    public function exception_handler($e){
 
     }
 

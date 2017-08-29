@@ -25,18 +25,18 @@ $handlerMaker = new DefaultHandlerMaker();
 
 $eventbus = new EventBusRabbitMQ($connectionManager, $logger, $subscriptionManager, $handlerMaker);
 
-$eventbus->publish($event = new UserCreatedEvent(1, User::class, "okid"));
+$eventbus->publish($event = new \JPuminate\Architecture\EventBus\Events\EventBusWorkerEvent());
 
 
 sleep(2);
 
-/*$eventbus->publish(new UserUpdatedEvent(1, User::class, 'user-service'));
+$eventbus->publish(new UserUpdatedEvent(1, User::class, 'user-service'));
 
 sleep(2);
 
 $eventbus->publish(new UserDeletedEvent(1, User::class));
 
-sleep(9);*/
+sleep(9);
 
 
 
