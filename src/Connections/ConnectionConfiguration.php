@@ -11,21 +11,41 @@ namespace JPuminate\Architecture\EventBus\Connections;
 
 class ConnectionConfiguration
 {
-    public $host = "localhost";
+    public $host;
 
-    public $username = "guest";
+    public $username;
 
-    public $password = "guest";
+    public $password;
 
-    public $port = 5672;
+    public $port;
 
     public $retryCount = 10;
 
     public $retryInterval = 2000000;
 
     /**
+     * ConnectionConfiguration constructor.
+     * @param string $host
+     * @param string $username
+     * @param string $password
+     * @param int $port
+     */
+    public function __construct($host="127.0.0.1", $port=5672, $username="guest", $password="guest")
+    {
+        $this->host = $host;
+        $this->username = $username;
+        $this->password = $password;
+        $this->port = $port;
+    }
+
+
+    /**
      * @return string
      */
+
+
+
+
     public function getHost(): string
     {
         return $this->host;

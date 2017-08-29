@@ -47,6 +47,7 @@ class EventBusRabbitMQ  implements EventBus
     private $subscription_key = "subscription.key";
 
 
+
     public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker)
     {
         $this->connectionManager = $connectionManager;
@@ -54,13 +55,21 @@ class EventBusRabbitMQ  implements EventBus
         $this->subscriptionManager = $subscriptionManager;
         $this->handlerMaker = $handlerMaker;
         $this->transientHandler = new RetryPolicy(new TransientErrorCatchAllStrategy(), new FixedInterval(5, 1000000));
-        $this->connectionManager->tryConnect();
-        $this->rabbit_subscribe_channel = $this->connectionManager->createChannel(static::$SUBSCRIBE_CHANNEL_ID);
         $this->subscription_key = $this->generateSubscriptionKey();
-
         register_shutdown_function(array($this, 'dispose'));
-        // set_exception_handler(array($this, 'exception_handler'));
     }
+
+
+
+    public function start(){
+        if(!$this->rabbit_subscribe_channel) {
+            if(!$this->connectionManager->isConnected()) {
+                $this->connectionManager->tryConnect();
+            }
+            $this->rabbit_subscribe_channel = $this->connectionManager->createChannel(static::$SUBSCRIBE_CHANNEL_ID);
+        }
+    }
+
 
     public function subscribe($event, $handler)
     {
@@ -149,7 +158,7 @@ class EventBusRabbitMQ  implements EventBus
         return $name;
     }
 
-    public function run(){
+    public function listen(){
         if($this->rabbit_subscribe_channel){
             while(count($this->rabbit_subscribe_channel->callbacks)) {
                 $this->rabbit_subscribe_channel->wait();

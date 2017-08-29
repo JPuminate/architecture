@@ -53,7 +53,7 @@ $eventbus->subscribe(UserUpdatedEvent::class, UserCreatedEventHandler::class);
 
 
 
-$eventbus->run();
+$eventbus->listen();
 
 echo "pppp";
 

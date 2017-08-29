@@ -35,4 +35,8 @@ class DefaultConnectionFactory implements ConnectionFactory
     {
         return $this->configuration;
     }
+
+    public function setConnectionConfiguration(ConnectionConfiguration $configuration){
+        $this->configuration = $configuration;
+    }
 }
