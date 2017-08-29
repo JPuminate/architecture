@@ -64,7 +64,8 @@ class EventBustListenCommand extends Command
 
     private function setConnection(){
         $connection = $this->input->getArgument('connection');
-       if( $connectionOption = $connection ? $this->laravel['config']['eventbus.connections.'.$connection] : $this->laravel['config']['eventbus.default']) {
+       if( $connectionOption = $connection ? $this->laravel['config']['eventbus.connections.'.$connection]
+           : $this->laravel['config']['eventbus.connections.'.$this->laravel['config']['eventbus.default']]) {
            $configuration = new ConnectionConfiguration($connectionOption['host'], $connectionOption['port'], $connectionOption['username'], $connectionOption['password']);
            $this->cnx_factory->setConnectionConfiguration($configuration);
        }

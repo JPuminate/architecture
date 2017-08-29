@@ -14,6 +14,7 @@ use Bgy\TransientFaultHandling\RetryPolicy;
 use Bgy\TransientFaultHandling\RetryStrategies\FixedInterval;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
 use JPuminate\Contracts\EventBus\EventBus;
+use JPuminate\Contracts\EventBus\Events\Event;
 use JPuminate\Contracts\EventBus\Events\IntegrationEvent;
 use JPuminate\Contracts\EventBus\Subscriptions\SubscriptionManager;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -84,7 +85,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->subscriptionManager->removeSubscription($event_key, $handler);
     }
 
-    public function publish(IntegrationEvent $event)
+    public function publish(Event $event)
     {
         if (!$this->connectionManager->isConnected()) {
             $this->connectionManager->tryConnect();
@@ -92,6 +93,7 @@ class EventBusRabbitMQ  implements EventBus
         $event_ext = $this->getEventExchangeName($event);
         $this->rabbit_publish_channel = $this->connectionManager->createChannel(static::$PUBLISH_CHANNEL_ID);
         $this->rabbit_publish_channel->exchange_declare($event_ext, 'fanout', false, true, false);
+        $event->setPusherId($this->subscription_key);
         $message = json_encode($event);
         $amqp_msg = new AMQPMessage($message);
         $this->transientHandler->execute(function () use($amqp_msg, $event_ext) {
@@ -174,7 +176,7 @@ class EventBusRabbitMQ  implements EventBus
             foreach ($handlers as $handler){
                 $reflectedClass = new \ReflectionClass($event->event_name);
                 $integrationEvent = $reflectedClass->getMethod('deserialize')->invoke(null, $event);
-                $this->handlerMaker->make($handler)->processEvent($integrationEvent);
+                if($integrationEvent->getPusherId() != $this->subscription_key)  $this->handlerMaker->make($handler)->processEvent($integrationEvent);
             }
         }
     }
