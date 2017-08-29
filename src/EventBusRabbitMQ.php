@@ -43,9 +43,9 @@ class EventBusRabbitMQ  implements EventBus
 
     private $subscriber_prefix = "subscriber";
 
-    private $subscription_key_file = "subscription.key";
+    private $publisher_id_file = "publisher.id";
 
-    private $subscription_key = "subscription.key";
+    private $publisher_id;
 
 
 
@@ -56,7 +56,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->subscriptionManager = $subscriptionManager;
         $this->handlerMaker = $handlerMaker;
         $this->transientHandler = new RetryPolicy(new TransientErrorCatchAllStrategy(), new FixedInterval(5, 1000000));
-        $this->subscription_key = $this->generateSubscriptionKey();
+        $this->publisher_id = $this->generatePublisherId();
         register_shutdown_function(array($this, 'dispose'));
     }
 
@@ -93,7 +93,7 @@ class EventBusRabbitMQ  implements EventBus
         $event_ext = $this->getEventExchangeName($event);
         $this->rabbit_publish_channel = $this->connectionManager->createChannel(static::$PUBLISH_CHANNEL_ID);
         $this->rabbit_publish_channel->exchange_declare($event_ext, 'fanout', false, true, false);
-        $event->setPusherId($this->subscription_key);
+        $event->setPusherId($this->publisher_id);
         $message = json_encode($event);
         $amqp_msg = new AMQPMessage($message);
         $this->transientHandler->execute(function () use($amqp_msg, $event_ext) {
@@ -136,19 +136,22 @@ class EventBusRabbitMQ  implements EventBus
         $this->rabbit_subscribe_channel->basic_consume($queue_name, '', false, true, false, false, $callback);
     }
 
-    private function generateSubscriptionKey()
+    private function generatePublisherId()
     {
-        $path = __DIR__ . '/' . $this->subscription_key_file;
+        $path = __DIR__ . '/' . $this->publisher_id_file;
         if (file_exists($path)) {
             $key = file_get_contents($path);
-            if (empty($key)) $key = $this->subscriptionManager->getSubscriptionKey();
-            file_put_contents($path, $key);
-        } else file_put_contents($path, $key = $this->subscriptionManager->getSubscriptionKey());
+            if (empty($key)) {
+                $key = $this->prefixKey($this->subscriptionManager->getSubscriptionKey());
+                file_put_contents($path, $key);
+            }
+        }
+        else file_put_contents($path, $key = $this->prefixKey($this->subscriptionManager->getSubscriptionKey()));
         return $key;
     }
 
     private function getSubscriptionQueueName($event_key){
-        return $this->subscriber_prefix.'.'.$this->subscription_key.'.'.$event_key;
+        return $this->subscriber_prefix.'.'.$this->publisher_id.'.'.$event_key;
     }
 
     private function getEventExchangeName($event){
@@ -176,13 +179,18 @@ class EventBusRabbitMQ  implements EventBus
             foreach ($handlers as $handler){
                 $reflectedClass = new \ReflectionClass($event->event_name);
                 $integrationEvent = $reflectedClass->getMethod('deserialize')->invoke(null, $event);
-                if($integrationEvent->getPusherId() != $this->subscription_key)  $this->handlerMaker->make($handler)->processEvent($integrationEvent);
+                if($integrationEvent->getPusherId() != $this->publisher_id)  $this->handlerMaker->make($handler)->processEvent($integrationEvent);
             }
         }
     }
 
     public function exception_handler($e){
 
+    }
+
+    private function prefixKey($key)
+    {
+        return  env('APP_NAME', 'APP').'-'.$key;
     }
 
 }
