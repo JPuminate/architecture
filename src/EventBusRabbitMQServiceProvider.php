@@ -11,6 +11,7 @@ namespace JPuminate\Architecture\EventBus;
 
 use Illuminate\Support\ServiceProvider;
 use JPuminate\Architecture\EventBus\Connections\ConnectionConfiguration;
+use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultRabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
@@ -68,6 +69,9 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
             : new $connectionOption['manager']($connectionFactory, $logger);
         $this->app->singleton(RabbitMQConnectionManager::class, function() use ($connectionManager) {
             return $connectionManager;
+        });
+        $this->app->singleton(ConnectionFactory::class, function() use($connectionFactory){
+            return $connectionFactory;
         });
     }
 

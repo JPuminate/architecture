@@ -13,4 +13,5 @@ interface ConnectionFactory
 {
     public function createConnection();
     public function getConnectionConfiguration(): ConnectionConfiguration;
+    public function setConnectionConfiguration(ConnectionConfiguration $configuration);
 }
