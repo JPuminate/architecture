@@ -54,6 +54,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
         $config = config(static::$configFile);
         $this->registerConnectionManager($config);
         $this->registerEventBusInstance($config);
+        $this->registerEventBusManager();
     }
 
 
@@ -87,6 +88,12 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
                 $subscription_manager,
                 new ContainerBasedHandlerMaker()
                 );
+        });
+    }
+
+    private function registerEventBusManager(){
+        $this->app->singleton(EventBusManager::class, function ($app) {
+            return new EventBusManager($app);
         });
     }
 

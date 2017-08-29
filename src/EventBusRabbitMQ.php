@@ -13,6 +13,7 @@ use Bgy\TransientFaultHandling\ErrorDetectionStrategies\TransientErrorCatchAllSt
 use Bgy\TransientFaultHandling\RetryPolicy;
 use Bgy\TransientFaultHandling\RetryStrategies\FixedInterval;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
+use JPuminate\Architecture\EventBus\Events\DeserializationErrorEvent;
 use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Events\Event;
 use JPuminate\Contracts\EventBus\Events\IntegrationEvent;
@@ -177,9 +178,14 @@ class EventBusRabbitMQ  implements EventBus
         if($this->subscriptionManager->hasSubscriptionsForEvent($event_key)){
             $handlers = $this->subscriptionManager->getHandlersForEvent($event_key);
             foreach ($handlers as $handler){
-                $reflectedClass = new \ReflectionClass($event->event_name);
-                $integrationEvent = $reflectedClass->getMethod('deserialize')->invoke(null, $event);
-                if($integrationEvent->getPusherId() != $this->publisher_id)  $this->handlerMaker->make($handler)->processEvent($integrationEvent);
+                try {
+                    $reflectedClass = new \ReflectionClass($event->event_name);
+                    $integrationEvent = $reflectedClass->getMethod('deserialize')->invoke(null, $event);
+                    if ($integrationEvent->getPusherId() != $this->publisher_id) $this->handlerMaker->make($handler)->processEvent($integrationEvent);
+                }
+                catch(\Exception $e){
+                    \Illuminate\Support\Facades\Event::dispatch(new DeserializationErrorEvent($event, $e));
+                }
             }
         }
     }

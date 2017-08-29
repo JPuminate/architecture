@@ -12,6 +12,7 @@ use JPuminate\Architecture\EventBus\DefaultHandlerMaker;
 use JPuminate\Architecture\EventBus\EventBusRabbitMQ;
 use JPuminate\Contracts\EventBus\Events\EntityEvent;
 use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
+use JPuminate\Contracts\EventBus\Supported\Events\PingEvent;
 
 
 $connectionManager = new DefaultRabbitMQConnectionManager($factory = new DefaultConnectionFactory(new ConnectionConfiguration()), new Console());
@@ -25,7 +26,7 @@ $handlerMaker = new DefaultHandlerMaker();
 
 $eventbus = new EventBusRabbitMQ($connectionManager, $logger, $subscriptionManager, $handlerMaker);
 
-$eventbus->publish($event = new \JPuminate\Architecture\EventBus\Events\EventBusWorkerEvent());
+$eventbus->publish($event = new PingEvent());
 
 
 sleep(2);
