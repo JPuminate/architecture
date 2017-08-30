@@ -3,14 +3,10 @@
 namespace JPuminate\Architecture\EventBus\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Container\Container;
-use InvalidArgumentException;
 use JPuminate\Architecture\EventBus\Connections\ConnectionConfiguration;
 use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
-use JPuminate\Architecture\EventBus\Exceptions\UnsupportedEvent;
 use JPuminate\Contracts\EventBus\EventBus;
 use RuntimeException;
-use Symfony\Component\Console\Input\InputOption;
 
 /**
  * Created by PhpStorm.

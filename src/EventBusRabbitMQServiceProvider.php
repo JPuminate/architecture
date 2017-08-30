@@ -15,8 +15,10 @@ use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultRabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
+use JPuminate\Architecture\EventBus\Console\Commands\EventBustListCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListenCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\ListenerMakeCommand;
+use JPuminate\Architecture\EventBus\Events\Resolvers\GithubEventResolver;
 use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
 use Psr\Log\LoggerInterface;
@@ -46,7 +48,8 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
     private function registerCommands(){
         $this->commands([
             ListenerMakeCommand::class,
-            EventBustListenCommand::class
+            EventBustListenCommand::class,
+            EventBustListCommand::class
         ]);
     }
 
@@ -79,16 +82,22 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
     private function registerEventBusInstance($config){
 
         $subscription_manager_driver = $config['subscription']['manager'];
-        $subscription_manager = $subscription_manager_driver == "in_memory" ? new InMemoryEventBusSubscriptionManager() : new $subscription_manager();
-
-        $this->app->singleton(EventBus::class, function () use ($subscription_manager){
-            return new EventBusRabbitMQ(
-                $this->app->make(RabbitMQConnectionManager::class),
-                $this->app->make(LoggerInterface::class),
-                $subscription_manager,
-                new ContainerBasedHandlerMaker()
+        $subscription_manager = $subscription_manager_driver == "in_memory" ? new InMemoryEventBusSubscriptionManager() : new $subscription_manager_driver();
+        $event_resolver_driver =  $config['subscription']['resolver'];
+        $resolver_options =  $config['resolvers'][$event_resolver_driver];
+        if($event_resolver_driver == 'github'){
+            $this->app->singleton(EventBus::class, function () use ($subscription_manager, $resolver_options){
+                return new EventBusRabbitMQ(
+                    $this->app->make(RabbitMQConnectionManager::class),
+                    $this->app->make(LoggerInterface::class),
+                    $subscription_manager,
+                    new ContainerBasedHandlerMaker(),
+                    new GithubEventResolver($resolver_options['username'], $resolver_options['repository'], $resolver_options['reference'], $resolver_options['path'])
                 );
-        });
+            });
+        }
+        else throw new \RuntimeException('Unsupported event resolver : '.$event_resolver_driver);
+
     }
 
     private function registerEventBusManager(){

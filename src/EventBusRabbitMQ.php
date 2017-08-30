@@ -14,6 +14,7 @@ use Bgy\TransientFaultHandling\RetryPolicy;
 use Bgy\TransientFaultHandling\RetryStrategies\FixedInterval;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Events\DeserializationErrorEvent;
+use JPuminate\Architecture\EventBus\Events\Resolvers\EventResolver;
 use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Events\Event;
 use JPuminate\Contracts\EventBus\Events\IntegrationEvent;
@@ -40,6 +41,8 @@ class EventBusRabbitMQ  implements EventBus
 
     private $rabbit_publish_channel;
 
+    private $eventResolver;
+
     private $transientHandler;
 
     private $subscriber_prefix = "subscriber";
@@ -50,7 +53,7 @@ class EventBusRabbitMQ  implements EventBus
 
 
 
-    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker)
+    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver)
     {
         $this->connectionManager = $connectionManager;
         $this->logger = $logger;
@@ -58,6 +61,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->handlerMaker = $handlerMaker;
         $this->transientHandler = new RetryPolicy(new TransientErrorCatchAllStrategy(), new FixedInterval(5, 1000000));
         $this->publisher_id = $this->generatePublisherId();
+        $this->eventResolver = $resolver;
         register_shutdown_function(array($this, 'dispose'));
     }
 
@@ -200,6 +204,10 @@ class EventBusRabbitMQ  implements EventBus
     private function prefixKey($key)
     {
         return  env('APP_NAME', 'APP').'-'.$key;
+    }
+
+    public function getEventResolver(){
+        return $this->eventResolver;
     }
 
 }

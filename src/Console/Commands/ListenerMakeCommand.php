@@ -22,7 +22,7 @@ class ListenerMakeCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $name = 'make:bus-listener';
+    protected $name = 'eventbus:listener';
 
     protected $description = 'Create a new bus listener class';
 
