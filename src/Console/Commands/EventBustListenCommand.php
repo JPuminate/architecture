@@ -55,7 +55,7 @@ class EventBustListenCommand extends Command
     }
 
     private function getPreConfiguredSubscriptions(){
-        return $this->laravel['config']['eventbus.subscription.events'];
+        return $this->laravel['config']['eventbus.subscription.listeners'];
     }
 
     private function setConnection(){

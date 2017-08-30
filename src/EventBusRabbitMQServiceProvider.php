@@ -17,6 +17,7 @@ use JPuminate\Architecture\EventBus\Connections\DefaultRabbitMQConnectionManager
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListenCommand;
+use JPuminate\Architecture\EventBus\Console\Commands\EventHostCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\ListenerMakeCommand;
 use JPuminate\Architecture\EventBus\Events\Resolvers\GithubEventResolver;
 use JPuminate\Contracts\EventBus\EventBus;
@@ -48,6 +49,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
     private function registerCommands(){
         $this->commands([
             ListenerMakeCommand::class,
+            EventHostCommand::class,
             EventBustListenCommand::class,
             EventBustListCommand::class
         ]);
@@ -83,7 +85,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
 
         $subscription_manager_driver = $config['subscription']['manager'];
         $subscription_manager = $subscription_manager_driver == "in_memory" ? new InMemoryEventBusSubscriptionManager() : new $subscription_manager_driver();
-        $event_resolver_driver =  $config['subscription']['resolver'];
+        $event_resolver_driver =  $config['subscription']['events']['resolver'];
         $resolver_options =  $config['resolvers'][$event_resolver_driver];
         if($event_resolver_driver == 'github'){
             $this->app->singleton(EventBus::class, function () use ($subscription_manager, $resolver_options){
