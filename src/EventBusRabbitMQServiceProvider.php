@@ -16,7 +16,7 @@ use JPuminate\Architecture\EventBus\Connections\DefaultConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultRabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListenCommand;
-use JPuminate\Architecture\EventBus\Console\Commands\HandlerMakeCommand;
+use JPuminate\Architecture\EventBus\Console\Commands\ListenerMakeCommand;
 use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
 use Psr\Log\LoggerInterface;
@@ -45,7 +45,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
 
     private function registerCommands(){
         $this->commands([
-            HandlerMakeCommand::class,
+            ListenerMakeCommand::class,
             EventBustListenCommand::class
         ]);
     }

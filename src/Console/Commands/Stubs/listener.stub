@@ -1,0 +1,31 @@
+<?php
+
+namespace DummyNamespace;
+
+use JPuminate\Architecture\EventBus\EventBusListener;
+use JPuminate\Contracts\EventBus\Events\Event;
+
+class DummyClass extends EventBusListener
+{
+
+    /**
+     * @param Event $event
+     * It is possible to filter the events before process them
+     * @return bool
+     */
+    public function filter(Event $event)
+    {
+        return true;
+    }
+
+    /**
+     * @param Event $event
+     * @return bool
+     */
+
+    public function processEvent(Event $event)
+    {
+        return true;
+    }
+
+}

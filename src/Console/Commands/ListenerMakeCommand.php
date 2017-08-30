@@ -15,33 +15,30 @@ use Symfony\Component\Console\Input\InputOption;
  * Time: 20:18
  */
 
-class HandlerMakeCommand extends GeneratorCommand
+class ListenerMakeCommand extends GeneratorCommand
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $name = 'make:handler';
+    protected $name = 'make:bus-listener';
 
+    protected $description = 'Create a new bus listener class';
 
-    protected $description = 'Create a new handler class';
-
-
-    protected $type = 'EventHandler';
+    protected $type = 'EventBusListener';
 
     private $eventsNamespace = 'JPuminate\\Contracts\\EventBus\\Events';
 
 
-
     protected function getStub(){
-        if($this->option('event')) return __DIR__.'\Stubs\handler.event.stub';
-        return __DIR__.'\Stubs\handler.stub';
+        if($this->option('event')) return __DIR__.'\Stubs\listener.event.stub';
+        return __DIR__.'\Stubs\listener.stub';
     }
 
     protected function getDefaultNamespace($rootNamespace)
     {
-        return $rootNamespace . '\EventBus\Handlers';
+        return $rootNamespace . '\EventBus\Listeners';
     }
 
     protected function buildClass($name)
@@ -58,7 +55,7 @@ class HandlerMakeCommand extends GeneratorCommand
     protected function getOptions()
     {
         return [
-            ['event', 'e', InputOption::VALUE_OPTIONAL, 'Generate a handler for the given event.']
+            ['event', 'e', InputOption::VALUE_OPTIONAL, 'Generate a listener for the given event.']
         ];
     }
 

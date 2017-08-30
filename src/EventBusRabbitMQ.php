@@ -181,7 +181,10 @@ class EventBusRabbitMQ  implements EventBus
                 try {
                     $reflectedClass = new \ReflectionClass($event->event_name);
                     $integrationEvent = $reflectedClass->getMethod('deserialize')->invoke(null, $event);
-                    if ($integrationEvent->getPusherId() != $this->publisher_id) $this->handlerMaker->make($handler)->processEvent($integrationEvent);
+                    if ($integrationEvent->getPusherId() != $this->publisher_id) {
+                        $handlerInstance = $this->handlerMaker->make($handler);
+                        if ($handlerInstance->filter($integrationEvent)) $handlerInstance->processEvent($integrationEvent);
+                    }
                 }
                 catch(\Exception $e){
                     \Illuminate\Support\Facades\Event::dispatch(new DeserializationErrorEvent($event, $e));
