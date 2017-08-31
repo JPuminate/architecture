@@ -101,16 +101,16 @@ class EventBusRabbitMQ  implements EventBus
 
     public function publish(Event $event)
     {
-        $event->setPusherId($this->publisher_id);
-        $event->setEventName($this->getEventName($event));
         if (!$this->connectionManager->isConnected()) {
             $this->connectionManager->tryConnect();
         }
         $event_ext = $this->getEventExchangeName($event);
         $this->rabbit_publish_channel = $this->connectionManager->createChannel(static::$PUBLISH_CHANNEL_ID);
         $this->rabbit_publish_channel->exchange_declare($event_ext, 'fanout', false, true, false);
+        $event->setPusherId($this->publisher_id);
+        $event->setEventName($this->getEventName($event));
         $message = json_encode($event);
-        $amqp_msg = new AMQPMessage($message);
+        $amqp_msg = new AMQPMessage($message, array('delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT));
         $this->transientHandler->execute(function () use($amqp_msg, $event_ext) {
             $this->rabbit_publish_channel->basic_publish($amqp_msg, $event_ext);
         });
@@ -137,10 +137,11 @@ class EventBusRabbitMQ  implements EventBus
         $this->rabbit_subscribe_channel = $this->connectionManager->createChannel(static::$SUBSCRIBE_CHANNEL_ID);
         $this->rabbit_subscribe_channel->exchange_declare($ext = $this->getEventExchangeName($event_key),'fanout', false, true, false);
         $queue_name = $this->getSubscriptionQueueName($event_key);
-        $this->rabbit_subscribe_channel->queue_declare($queue_name, false, true, true, false);
+        $this->rabbit_subscribe_channel->queue_declare($queue_name, false, true, false, false);
         $this->rabbit_subscribe_channel->queue_bind($queue_name, $ext);
         $callback = function (AMQPMessage $msg) {
             try {
+                $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
                 $event = json_decode($msg->body);
                 $this->processEvent($event);
             }
@@ -148,7 +149,7 @@ class EventBusRabbitMQ  implements EventBus
                 $this->exception_handler($e);
             }
         };
-        $this->rabbit_subscribe_channel->basic_consume($queue_name, '', false, true, false, false, $callback);
+        $this->rabbit_subscribe_channel->basic_consume($queue_name, '',false, false, false, false, $callback);
     }
 
     private function generatePublisherId()

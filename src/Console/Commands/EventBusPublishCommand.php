@@ -2,19 +2,14 @@
 
 namespace JPuminate\Architecture\EventBus\Console\Commands;
 
-use App\EventBus\Events\PingEvent;
-use App\EventBus\Events\Users\UserCreatedEvent;
 use Illuminate\Console\Command;
-use Illuminate\Container\Container;
-use InvalidArgumentException;
 use JPuminate\Architecture\EventBus\Connections\ConnectionConfiguration;
 use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
 use JPuminate\Architecture\EventBus\EventBusRabbitMQ;
 use JPuminate\Architecture\EventBus\Exceptions\UnsupportedEvent;
+use JPuminate\Architecture\EventBus\PingEvent;
 use JPuminate\Contracts\EventBus\EventBus;
-use ReflectionClass;
 use RuntimeException;
-use Symfony\Component\Console\Input\InputOption;
 
 /**
  * Created by PhpStorm.
