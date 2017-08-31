@@ -50,12 +50,11 @@ class EventBustListenCommand extends Command
             }
         }
         $this->line("<info>EventBus start listening ...</info>");
-        $this->eventBus->start();
         $this->eventBus->listen();
     }
 
     private function getPreConfiguredSubscriptions(){
-        return $this->laravel['config']['eventbus.subscription.listeners'];
+        return $this->laravel['config']['eventbus.subscription.handlers'];
     }
 
     private function setConnection(){

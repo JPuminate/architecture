@@ -15,6 +15,7 @@ use Bgy\TransientFaultHandling\RetryStrategies\FixedInterval;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Events\DeserializationErrorEvent;
 use JPuminate\Architecture\EventBus\Events\Resolvers\EventResolver;
+use JPuminate\Architecture\EventBus\Serialization\JSONDeserializer;
 use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Events\Event;
 use JPuminate\Contracts\EventBus\Events\IntegrationEvent;
@@ -56,7 +57,7 @@ class EventBusRabbitMQ  implements EventBus
 
     private $publisher_id;
 
-
+    private $deserializer;
 
 
     public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver)
@@ -68,6 +69,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->transientHandler = new RetryPolicy(new TransientErrorCatchAllStrategy(), new FixedInterval(5, 1000000));
         $this->publisher_id = $this->generatePublisherId();
         $this->eventResolver = $resolver;
+        $this->deserializer = new JSONDeserializer();
         register_shutdown_function(array($this, 'dispose'));
         static::$EVENT_NAME_DEL = app()->getNamespace().static::$NAME_SPACE.'\Events\\';
     }
@@ -191,9 +193,7 @@ class EventBusRabbitMQ  implements EventBus
             $handlers = $this->subscriptionManager->getHandlersForEvent($event_key);
             foreach ($handlers as $handler){
                 try {
-
-                    $reflectedClass = new \ReflectionClass($this->getEventClassName($event->event_name));
-                    $integrationEvent = $reflectedClass->getMethod('deserialize')->invoke(null, $event);
+                    $integrationEvent = $this->deserializer->deserialize($this->getEventClassName($event->event_name), $event);
                     if ($integrationEvent->getPusherId() != $this->publisher_id) {
                         $handlerInstance = $this->handlerMaker->make($handler);
                         if ($handlerInstance->filter($integrationEvent)) $handlerInstance->processEvent($integrationEvent);
