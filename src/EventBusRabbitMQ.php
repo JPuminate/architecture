@@ -25,7 +25,10 @@ use Psr\Log\LoggerInterface;
 class EventBusRabbitMQ  implements EventBus
 {
 
+
     public static $NAME_SPACE = 'EventBus';
+
+    public static $EVENT_NAME_DEL;
 
     private static $PUBLISH_CHANNEL_ID = 2;
 
@@ -66,6 +69,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->publisher_id = $this->generatePublisherId();
         $this->eventResolver = $resolver;
         register_shutdown_function(array($this, 'dispose'));
+        static::$EVENT_NAME_DEL = app()->getNamespace().static::$NAME_SPACE.'\Events\\';
     }
 
 
@@ -188,7 +192,8 @@ class EventBusRabbitMQ  implements EventBus
             $handlers = $this->subscriptionManager->getHandlersForEvent($event_key);
             foreach ($handlers as $handler){
                 try {
-                    $reflectedClass = new \ReflectionClass($event->event_name);
+
+                    $reflectedClass = new \ReflectionClass($this->getEventClassName($event->event_name));
                     $integrationEvent = $reflectedClass->getMethod('deserialize')->invoke(null, $event);
                     if ($integrationEvent->getPusherId() != $this->publisher_id) {
                         $handlerInstance = $this->handlerMaker->make($handler);
@@ -217,9 +222,13 @@ class EventBusRabbitMQ  implements EventBus
 
     private function getEventName($event)
     {
-        $reflectedClass = new \ReflectionClass($event);
+        $array = explode(static::$EVENT_NAME_DEL, get_class($event));
+        return strtolower(end($array));
+    }
 
-        return $reflectedClass->getShortName();
+    public function getEventClassName($event_name)
+    {
+        return static::$EVENT_NAME_DEL.$event_name;
     }
 
 }

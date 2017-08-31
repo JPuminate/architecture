@@ -15,6 +15,7 @@ use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultRabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
+use JPuminate\Architecture\EventBus\Console\Commands\EventBusPublishCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListEventsCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListenCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventHostCommand;
@@ -50,6 +51,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
         $this->commands([
             ListenerMakeCommand::class,
             EventHostCommand::class,
+            EventBusPublishCommand::class,
             EventBustListenCommand::class,
             EventBustListEventsCommand::class
         ]);

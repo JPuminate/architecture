@@ -2,6 +2,8 @@
 
 namespace JPuminate\Architecture\EventBus\Console\Commands;
 
+use App\EventBus\Events\PingEvent;
+use App\EventBus\Events\Users\UserCreatedEvent;
 use Illuminate\Console\Command;
 use Illuminate\Container\Container;
 use InvalidArgumentException;
@@ -9,6 +11,7 @@ use JPuminate\Architecture\EventBus\Connections\ConnectionConfiguration;
 use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
 use JPuminate\Architecture\EventBus\Exceptions\UnsupportedEvent;
 use JPuminate\Contracts\EventBus\EventBus;
+use ReflectionClass;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -19,7 +22,7 @@ use Symfony\Component\Console\Input\InputOption;
  * Time: 20:18
  */
 
-class EventBustPublishCommand extends Command
+class EventBusPublishCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -45,10 +48,9 @@ class EventBustPublishCommand extends Command
         $this->cnx_factory = $cnx_factory;
     }
 
+
     public function handle(){
-        //dd($this->)
-        //$this->setConnection();
-        //$this->eventBus->publish()
+        $this->setConnection();
     }
 
 
