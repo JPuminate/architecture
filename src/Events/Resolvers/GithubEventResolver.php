@@ -10,6 +10,7 @@ namespace JPuminate\Architecture\EventBus\Events\Resolvers;
 
 
 use Github\Client;
+use Http\Client\Exception\NetworkException;
 use JPuminate\Architecture\EventBus\Exceptions\EventResolverException;
 
 class GithubEventResolver implements EventResolver
@@ -72,6 +73,9 @@ class GithubEventResolver implements EventResolver
                 $events = array_merge($events, array_unique($this->getSubFiles([], $content)));
             }
             return $events;
+        }
+        catch(NetworkException $e){
+            throw $e;
         }
         catch (\Exception $e){
             throw new EventResolverException(null, null);

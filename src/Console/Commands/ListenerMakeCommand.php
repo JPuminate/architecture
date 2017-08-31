@@ -61,29 +61,26 @@ class ListenerMakeCommand extends GeneratorCommand
 
     private function buildEventReplacements()
     {
-        $eventClass = $this->parseEvent($this->option('event'));
-        if (! class_exists($eventNamespace = $this->getEventNamespace($eventClass))) {
+        $eventClass = $this->getEventFullNamespace($this->option('event'));
+        if (!class_exists($eventClass)) {
             $this->error("A {$eventClass} event does not supported by this eventbus.");
             return null;
         }
         return [
-            'DummyEventNamespace', $eventNamespace,
-            'DummyEventClass', $eventClass
+            'DummyEventNamespace' => $eventClass,
+            'DummyEventClass' => $this->getEventClass($eventClass)
         ];
     }
 
-    private function getEventNamespace($event_class){
-        return $this->eventsNamespace.'\\'.$event_class;
+
+
+    private function getEventFullNamespace($event)
+    {
+        return app()->getNamespace().EventBusRabbitMQ::$NAME_SPACE.'\\Events\\'.$event;
     }
 
-    private function parseEvent($event)
-    {
-        if (preg_match('([^A-Za-z0-9_/\\\\])', $event)) {
-            throw new InvalidArgumentException('Event name contains invalid characters.');
-        }
-
-        $event = trim(str_replace('/', '\\', $event), '\\');
-
-        return $event;
+    private function getEventClass($namespace){
+        $array = explode('\\', $namespace);
+        return end($array);
     }
 }

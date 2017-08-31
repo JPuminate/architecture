@@ -1,7 +1,7 @@
 <?php
 
 namespace DummyNamespace;
-namespace DummyEventNamespace;
+use DummyEventNamespace;
 
 use JPuminate\Architecture\EventBus\EventBusListener;
 

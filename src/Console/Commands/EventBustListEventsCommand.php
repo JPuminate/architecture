@@ -40,13 +40,13 @@ class EventBustListEventsCommand extends Command
     public function handle(){
       $events = $this->eventBus->getEventResolver()->getAllEvents();
       echo "All events supported by connected eventbus are : \n\n";
-     $this->plotEventsTree($events, 2, "-->");
+     $this->plotEventsTree($events, 2, "-");
     }
 
     private function plotEventsTree($events, $offset=0, $tied="--"){
         foreach ($events as $key => $value) {
             if (is_array($value)) {
-                echo str_repeat(' ', $offset).$tied.' '.$key."\r\n";
+                echo str_repeat(' ', $offset).'+'.' '.$key."\r\n";
                 $this->plotEventsTree($value, $offset+2, $tied);
             } else  echo str_repeat(' ', $offset).$tied.' '.$value."\r\n";
         }
