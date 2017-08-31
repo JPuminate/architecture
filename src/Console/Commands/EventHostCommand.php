@@ -52,8 +52,9 @@ class EventHostCommand extends GeneratorCommand
     }
 
     private function getEventName($name){
-        $array = explode("\\", $name);
-        return end($array);
+        $origin = $this->rootNamespace(). 'EventBus\Events\\';
+        $array = explode($origin, $name);
+        return str_replace('\\', '/', end($array));
     }
 
     private function clean($code)
