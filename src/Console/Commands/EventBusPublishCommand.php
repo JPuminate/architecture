@@ -9,6 +9,7 @@ use Illuminate\Container\Container;
 use InvalidArgumentException;
 use JPuminate\Architecture\EventBus\Connections\ConnectionConfiguration;
 use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
+use JPuminate\Architecture\EventBus\EventBusRabbitMQ;
 use JPuminate\Architecture\EventBus\Exceptions\UnsupportedEvent;
 use JPuminate\Contracts\EventBus\EventBus;
 use ReflectionClass;
@@ -30,7 +31,7 @@ class EventBusPublishCommand extends Command
      * @var string
      */
 
-    protected $signature = 'eventbus:publish  {connection? : The name of connection} {--event ? : the event class }';
+    protected $signature = 'eventbus:publish  {connection? : The name of connection} {--event=} {--args=}';
 
     protected $description = 'push a simple ping event to test connectivity or a real event to notify subscribers';
 
@@ -49,8 +50,20 @@ class EventBusPublishCommand extends Command
     }
 
 
-    public function handle(){
+    public function handle()
+    {
         $this->setConnection();
+        if ($this->option('event')) {
+            if ($event = $this->supportedEvent()) {
+                 if($args = $this->option('args')) {
+                     $args = explode(",", $args);
+                     $this->eventBus->publish(new $event(...$args));
+                 }
+                 else $this->eventBus->publish(new $event());
+            } else throw new UnsupportedEvent();
+        } else {
+            $this->eventBus->publish(new PingEvent());
+        }
     }
 
 
@@ -62,5 +75,14 @@ class EventBusPublishCommand extends Command
            $this->cnx_factory->setConnectionConfiguration($configuration);
        }
        else throw new RuntimeException("connection not found");
+    }
+
+    private function supportedEvent()
+    {
+        if (class_exists($class_name = $this->getLaravel()->getNamespace() .
+            EventBusRabbitMQ::$NAME_SPACE . '\Events\\' .
+            $this->option('event')))
+            return $class_name;
+        return false;
     }
 }

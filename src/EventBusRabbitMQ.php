@@ -101,7 +101,6 @@ class EventBusRabbitMQ  implements EventBus
     {
         $event->setPusherId($this->publisher_id);
         $event->setEventName($this->getEventName($event));
-        dd($event);
         if (!$this->connectionManager->isConnected()) {
             $this->connectionManager->tryConnect();
         }
