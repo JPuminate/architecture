@@ -5,6 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 
 use App\EventBus\Events\PingEvent;
+use App\EventBus\Events\Users\UserCreatedEvent;
 use AuronConsultingOSS\Logger\Console;
 use JPuminate\Architecture\EventBus\Connections\ConnectionConfiguration;
 use JPuminate\Architecture\EventBus\Connections\DefaultConnectionFactory;
@@ -25,9 +26,9 @@ $resolver = new GithubEventResolver(null, null, null, null);
 
 
 
-$eventbus = new EventBusRabbitMQ($connectionManager, $logger, $subscriptionManager, $handlerMaker, $resolver, "Users");
+$eventbus = new EventBusRabbitMQ($connectionManager, $logger, $subscriptionManager, $handlerMaker, $resolver);
 
-$eventbus->publish(new PingEvent());
+$eventbus->publish(new UserCreatedEvent(1, 5));
 
 
 sleep(9);

@@ -25,6 +25,8 @@ use Psr\Log\LoggerInterface;
 class EventBusRabbitMQ  implements EventBus
 {
 
+    public static $NAME_SPACE = 'EventBus';
+
     private static $PUBLISH_CHANNEL_ID = 2;
 
     private static $SUBSCRIBE_CHANNEL_ID = 1;
@@ -216,8 +218,8 @@ class EventBusRabbitMQ  implements EventBus
     private function getEventName($event)
     {
         $reflectedClass = new \ReflectionClass($event);
-        if ($this->rootNamespace_for_events != '') return $this->rootNamespace_for_events . '\\' . $reflectedClass->getShortName();
-       return $reflectedClass->getShortName();
+
+        return $reflectedClass->getShortName();
     }
 
 }

@@ -5,6 +5,7 @@ namespace JPuminate\Architecture\EventBus\Console\Commands;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use JPuminate\Architecture\EventBus\EventBusRabbitMQ;
 use JPuminate\Architecture\EventBus\Exceptions\UnsupportedEvent;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -28,7 +29,6 @@ class ListenerMakeCommand extends GeneratorCommand
 
     protected $type = 'EventBusListener';
 
-    private $eventsNamespace = 'JPuminate\\Contracts\\EventBus\\Events';
 
 
     protected function getStub(){
@@ -38,7 +38,7 @@ class ListenerMakeCommand extends GeneratorCommand
 
     protected function getDefaultNamespace($rootNamespace)
     {
-        return $rootNamespace . '\EventBus\Listeners';
+        return $rootNamespace . '\\'.EventBusRabbitMQ::$NAME_SPACE.'\Listeners';
     }
 
     protected function buildClass($name)

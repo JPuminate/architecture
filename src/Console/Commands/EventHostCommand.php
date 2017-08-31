@@ -6,6 +6,7 @@ use Illuminate\Console\GeneratorCommand;
 use Illuminate\Container\Container;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use JPuminate\Architecture\EventBus\EventBusRabbitMQ;
 use JPuminate\Architecture\EventBus\Exceptions\UnsupportedEvent;
 use JPuminate\Contracts\EventBus\EventBus;
 use Symfony\Component\Console\Input\InputOption;
@@ -37,7 +38,7 @@ class EventHostCommand extends GeneratorCommand
 
     protected function getDefaultNamespace($rootNamespace)
     {
-        return $rootNamespace . '\EventBus\Events';
+        return $rootNamespace . '\\'.EventBusRabbitMQ::$NAME_SPACE.'\Events';
     }
 
     protected function buildClass($name)
@@ -52,7 +53,7 @@ class EventHostCommand extends GeneratorCommand
     }
 
     private function getEventName($name){
-        $origin = $this->rootNamespace(). 'EventBus\Events\\';
+        $origin = $this->rootNamespace(). EventBusRabbitMQ::$NAME_SPACE.'\Events\\';
         $array = explode($origin, $name);
         return str_replace('\\', '/', end($array));
     }
