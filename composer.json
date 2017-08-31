@@ -26,5 +26,6 @@
         "psr-4": {
             "JPuminate\\Architecture\\EventBus\\": "src/"
         }
-    }
+    },
+    "license": "MIT"
 }
