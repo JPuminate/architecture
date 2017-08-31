@@ -15,7 +15,7 @@ use JPuminate\Architecture\EventBus\Connections\ConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultConnectionFactory;
 use JPuminate\Architecture\EventBus\Connections\DefaultRabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
-use JPuminate\Architecture\EventBus\Console\Commands\EventBustListCommand;
+use JPuminate\Architecture\EventBus\Console\Commands\EventBustListEventsCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListenCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventHostCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\ListenerMakeCommand;
@@ -51,7 +51,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
             ListenerMakeCommand::class,
             EventHostCommand::class,
             EventBustListenCommand::class,
-            EventBustListCommand::class
+            EventBustListEventsCommand::class
         ]);
     }
 
@@ -94,7 +94,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
                     $this->app->make(LoggerInterface::class),
                     $subscription_manager,
                     new ContainerBasedHandlerMaker(),
-                    new GithubEventResolver($resolver_options['username'], $resolver_options['repository'], $resolver_options['reference'], $resolver_options['path'])
+                    new GithubEventResolver($resolver_options['username'], $resolver_options['repository'], $resolver_options['reference'], $resolver_options['path'], $resolver_options['pattern'])
                 );
             });
         }

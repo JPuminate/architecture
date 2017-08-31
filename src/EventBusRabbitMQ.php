@@ -53,6 +53,7 @@ class EventBusRabbitMQ  implements EventBus
 
 
 
+
     public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver)
     {
         $this->connectionManager = $connectionManager;
@@ -92,13 +93,15 @@ class EventBusRabbitMQ  implements EventBus
 
     public function publish(Event $event)
     {
+        $event->setPusherId($this->publisher_id);
+        $event->setEventName($this->getEventName($event));
+        dd($event);
         if (!$this->connectionManager->isConnected()) {
             $this->connectionManager->tryConnect();
         }
         $event_ext = $this->getEventExchangeName($event);
         $this->rabbit_publish_channel = $this->connectionManager->createChannel(static::$PUBLISH_CHANNEL_ID);
         $this->rabbit_publish_channel->exchange_declare($event_ext, 'fanout', false, true, false);
-        $event->setPusherId($this->publisher_id);
         $message = json_encode($event);
         $amqp_msg = new AMQPMessage($message);
         $this->transientHandler->execute(function () use($amqp_msg, $event_ext) {
@@ -208,6 +211,13 @@ class EventBusRabbitMQ  implements EventBus
 
     public function getEventResolver(){
         return $this->eventResolver;
+    }
+
+    private function getEventName($event)
+    {
+        $reflectedClass = new \ReflectionClass($event);
+        if ($this->rootNamespace_for_events != '') return $this->rootNamespace_for_events . '\\' . $reflectedClass->getShortName();
+       return $reflectedClass->getShortName();
     }
 
 }

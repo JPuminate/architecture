@@ -15,7 +15,7 @@ use RuntimeException;
  * Time: 20:18
  */
 
-class EventBustListCommand extends Command
+class EventBustListEventsCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -40,9 +40,16 @@ class EventBustListCommand extends Command
     public function handle(){
       $events = $this->eventBus->getEventResolver()->getAllEvents();
       echo "All events supported by connected eventbus are : \n\n";
-      foreach ($events as $event){
-          echo "--  ".$event."\n";
-      }
+     $this->plotEventsTree($events, 2, "-->");
+    }
+
+    private function plotEventsTree($events, $offset=0, $tied="--"){
+        foreach ($events as $key => $value) {
+            if (is_array($value)) {
+                echo str_repeat(' ', $offset).$tied.' '.$key."\r\n";
+                $this->plotEventsTree($value, $offset+2, $tied);
+            } else  echo str_repeat(' ', $offset).$tied.' '.$value."\r\n";
+        }
     }
 
 }

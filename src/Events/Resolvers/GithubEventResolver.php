@@ -9,6 +9,7 @@
 namespace JPuminate\Architecture\EventBus\Events\Resolvers;
 
 
+use Github\Client;
 use JPuminate\Architecture\EventBus\Exceptions\EventResolverException;
 
 class GithubEventResolver implements EventResolver
@@ -33,14 +34,19 @@ class GithubEventResolver implements EventResolver
      * @var
      */
     private $repo;
+    /**
+     * @var
+     */
+    private $pattern;
 
-    public function __construct($username, $repo, $reference, $directory_path)
+    public function __construct($username, $repo, $reference, $directory_path, $pattern="*")
     {
-        $this->client = new \Github\Client();
+        $this->client = new Client();
         $this->reference = $reference;
         $this->directory_path = $directory_path;
         $this->username = $username;
         $this->repo = $repo;
+        $this->pattern = $pattern;
     }
 
     public function resolve($event)
@@ -59,11 +65,11 @@ class GithubEventResolver implements EventResolver
     {
         try {
             $events = [];
-            $contents = $this->client->api('repo')
+            $contents = $this->client->api('repos')
                 ->contents()
                 ->show($this->username, $this->repo, $this->directory_path, $this->reference);
             foreach ($contents as $content) {
-                array_push($events, $this->getEventName($content));
+                $events = array_merge($events, array_unique($this->getSubFiles([], $content)));
             }
             return $events;
         }
@@ -85,4 +91,26 @@ class GithubEventResolver implements EventResolver
     private function getEventFile($event){
         return ucfirst($event).'.php';
     }
+
+    private function getSubFiles($array, $content){
+        if($content['type'] == 'file') {
+            if(strtolower(pathinfo($content['name'], PATHINFO_EXTENSION)) == "php" &&
+            preg_match($this->pattern, explode('.php', $content['name'])[0])) return [$content['name']];
+            return [];
+        }
+        else if($content['type'] == 'dir'){
+            $dir_name = $content['name'];
+            $contents = $this->client->api('repos')
+                ->contents()
+                ->show($this->username, $this->repo, $content['path'], $this->reference);
+            $events = [];
+            foreach ($contents as $content) {
+                $events = array_merge($events,$this->getSubFiles($events, $content));
+            }
+            return array_merge($array, [$dir_name => $events]);
+        }
+    }
+
+
+
 }
