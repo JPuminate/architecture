@@ -9,6 +9,7 @@ use JPuminate\Architecture\EventBus\EventBusRabbitMQ;
 use JPuminate\Architecture\EventBus\Exceptions\UnsupportedEvent;
 use JPuminate\Architecture\EventBus\PingEvent;
 use JPuminate\Contracts\EventBus\EventBus;
+use JPuminate\Contracts\EventBus\Events\Event;
 use RuntimeException;
 
 /**
@@ -26,7 +27,7 @@ class EventBusPublishCommand extends Command
      * @var string
      */
 
-    protected $signature = 'eventbus:publish  {connection? : The name of connection} {--event=} {--args=}';
+    protected $signature = 'eventbus:publish  {--async} {connection? : The name of connection} {--event=} {--args=} ';
 
     protected $description = 'push a simple ping event to test connectivity or a real event to notify subscribers';
 
@@ -52,12 +53,13 @@ class EventBusPublishCommand extends Command
             if ($event = $this->supportedEvent()) {
                  if($args = $this->option('args')) {
                      $args = explode(",", $args);
-                     $this->eventBus->publish(new $event(...$args));
+                     $this->publishEvent(new $event(...$args));
                  }
-                 else $this->eventBus->publish(new $event());
+                 else $this->publishEvent(new $event());
             } else throw new UnsupportedEvent();
-        } else {
-            $this->eventBus->publish(new PingEvent());
+        }
+        else {
+            $this->publishEvent(new PingEvent());
         }
     }
 
@@ -79,5 +81,13 @@ class EventBusPublishCommand extends Command
             $this->option('event')))
             return $class_name;
         return false;
+    }
+
+    private function publishEvent(Event $event)
+    {
+       if($this->option("async")){
+           $this->eventBus->publishAsync($event, false);
+       }
+       else $this->eventBus->publish($event, false);
     }
 }

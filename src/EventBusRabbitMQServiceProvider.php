@@ -92,15 +92,17 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
         $subscription_manager = $subscription_manager_driver == "in_memory" ? new InMemoryEventBusSubscriptionManager() : new $subscription_manager_driver();
         $event_resolver_driver =  $config['subscription']['events']['resolver'];
         $resolver_options =  $config['resolvers'][$event_resolver_driver];
+        $asyncOptions =  $config['async'];
         if($event_resolver_driver == 'github'){
-            $this->app->singleton(EventBus::class, function () use ($subscription_manager, $resolver_options){
+            $this->app->singleton(EventBus::class, function () use ($subscription_manager, $resolver_options, $asyncOptions){
                 return new EventBusRabbitMQ(
                     $this->app->make(RabbitMQConnectionManager::class),
                     $this->app->make(LoggerInterface::class),
                     $subscription_manager,
                     new ContainerBasedHandlerMaker(),
                     new GithubEventResolver($resolver_options['username'], $resolver_options['repository'], $resolver_options['reference'], $resolver_options['path'], $resolver_options['pattern']),
-                    new DBEventLogger()
+                    new DBEventLogger(),
+                    $asyncOptions
                 );
             });
         }

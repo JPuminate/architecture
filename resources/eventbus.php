@@ -53,5 +53,10 @@ return [
             'reference' => 'master',
             'pattern' => "/^[a-zA-Z][\s\S]+Event$/"
         ]
+    ],
+
+    'async' => [
+        'queue' => 'default',
+        'connection' => 'database'
     ]
 ];

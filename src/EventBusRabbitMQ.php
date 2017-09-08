@@ -66,8 +66,10 @@ class EventBusRabbitMQ  implements EventBus
 
     private $eventLogger;
 
+    private $async = ['queue' => 'default', 'connection' => 'database'];
 
-    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver, EventLogger $eventLogger)
+
+    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver, EventLogger $eventLogger, $asyncOptions=null)
     {
         $this->connectionManager = $connectionManager;
         $this->logger = $logger;
@@ -78,6 +80,10 @@ class EventBusRabbitMQ  implements EventBus
         $this->eventResolver = $resolver;
         $this->deserializer = new JSONDeserializer();
         $this->eventLogger = $eventLogger;
+        if($asyncOptions){
+            if(array_key_exists('queue', $asyncOptions)) $this->async['queue'] = $asyncOptions['queue'];
+            if(array_key_exists('connection', $asyncOptions)) $this->async['connection'] = $asyncOptions['connection'];
+        }
         register_shutdown_function(array($this, 'dispose'));
         static::$EVENT_NAME_DEL = app()->getNamespace().static::$NAME_SPACE.'\Events\\';
     }
@@ -125,6 +131,12 @@ class EventBusRabbitMQ  implements EventBus
         if ($logIt) $this->eventLogger->saveEventAndMarkItAsPublished($event);
     }
 
+    public function publishAsync(Event $event, $logIt=true)
+    {
+        return AsyncPublisher::dispatch($event, $logIt, $this->async)
+            ->onQueue($this->async['queue'])
+            ->onConnection($this->async['connection']);
+    }
 
 
     public function dispose()

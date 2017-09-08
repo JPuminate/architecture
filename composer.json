@@ -15,7 +15,8 @@
         "borisguery/transient-error-handling": "dev-master",
         "illuminate/support": "^5.4",
         "illuminate/console": "^5.4",
-      "illuminate/container": "^5.4",
+        "illuminate/container": "^5.4",
+        "illuminate/queue": "^5.4",
         "knplabs/github-api": "^2.5",
         "php-http/guzzle6-adapter": "^1.1"
     },
