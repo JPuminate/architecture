@@ -20,6 +20,7 @@ use JPuminate\Architecture\EventBus\Console\Commands\EventBustListEventsCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventBustListenCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\EventHostCommand;
 use JPuminate\Architecture\EventBus\Console\Commands\ListenerMakeCommand;
+use JPuminate\Architecture\EventBus\Events\Loggers\DBEventLogger;
 use JPuminate\Architecture\EventBus\Events\Resolvers\GithubEventResolver;
 use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
@@ -36,6 +37,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->registerCommands();
+            $this->registerMigrations();
             $this->_publishes();
         }
 
@@ -97,7 +99,8 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
                     $this->app->make(LoggerInterface::class),
                     $subscription_manager,
                     new ContainerBasedHandlerMaker(),
-                    new GithubEventResolver($resolver_options['username'], $resolver_options['repository'], $resolver_options['reference'], $resolver_options['path'], $resolver_options['pattern'])
+                    new GithubEventResolver($resolver_options['username'], $resolver_options['repository'], $resolver_options['reference'], $resolver_options['path'], $resolver_options['pattern']),
+                    new DBEventLogger()
                 );
             });
         }
@@ -109,6 +112,16 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
         $this->app->singleton(EventBusManager::class, function ($app) {
             return new EventBusManager($app);
         });
+    }
+
+    private function registerMigrations()
+    {
+        if (EventBusRabbitMQ::$RUN_MIGRATION) {
+            $this->loadMigrationsFrom(__DIR__ . '/../resources/database');
+        } else
+            $this->publishes([
+                __DIR__ . '/../resources/database' => database_path('migrations'),
+            ], 'eventbus-migrations');
     }
 
 

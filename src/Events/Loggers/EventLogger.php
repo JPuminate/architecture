@@ -13,5 +13,6 @@ use JPuminate\Contracts\EventBus\Events\Event;
 interface EventLogger
 {
     public function saveEvent(Event $event);
+    public function saveEventAndMarkItAsPublished(Event $event);
     public function markEventAsPublished(Event $event);
 }

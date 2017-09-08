@@ -19,7 +19,21 @@ class DBEventLogger implements EventLogger
     public function saveEvent(Event $event)
     {
         $entry = new EventLogEntry($event);
-        return DB::table(EventBusRabbitMQ::$EVENT_LOG_DATABASE)->insert([
+        return DB::table(EventBusRabbitMQ::$EVENT_LOG_TABLE)->insert([
+            'event_id' => $entry->getEventId(),
+            'creation_time' => $entry->getCreationTime(),
+            'event_type' => $entry->getEventType(),
+            'event_state' => $entry->getState(),
+            'event_payload' => $entry->getContent(),
+            'time_sent' => $entry->getTimeSent()
+        ]);
+    }
+
+    public function saveEventAndMarkItAsPublished(Event $event){
+        $entry = new EventLogEntry($event);
+        $entry->setState(EventState::$PUBLISHED);
+        $entry->incrementTimeSent();
+        return DB::table(EventBusRabbitMQ::$EVENT_LOG_TABLE)->insert([
             'event_id' => $entry->getEventId(),
             'creation_time' => $entry->getCreationTime(),
             'event_type' => $entry->getEventType(),
@@ -31,7 +45,7 @@ class DBEventLogger implements EventLogger
 
     public function markEventAsPublished(Event $event)
     {
-        $entry = DB::table(EventBusRabbitMQ::$EVENT_LOG_DATABASE)->where('event_id', $event->getId())->first();
+        $entry = DB::table(EventBusRabbitMQ::$EVENT_LOG_TABLE)->where('event_id', $event->getId())->first();
         $entry->time_sent++;
         $entry->event_state = EventState::$PUBLISHED;
         return $entry->save();

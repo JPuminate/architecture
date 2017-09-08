@@ -14,6 +14,7 @@ use Bgy\TransientFaultHandling\RetryPolicy;
 use Bgy\TransientFaultHandling\RetryStrategies\FixedInterval;
 use JPuminate\Architecture\EventBus\Connections\RabbitMQConnectionManager;
 use JPuminate\Architecture\EventBus\Events\DeserializationErrorEvent;
+use JPuminate\Architecture\EventBus\Events\Loggers\EventLogger;
 use JPuminate\Architecture\EventBus\Events\Resolvers\EventResolver;
 use JPuminate\Architecture\EventBus\Serialization\JSONDeserializer;
 use JPuminate\Contracts\EventBus\EventBus;
@@ -59,10 +60,14 @@ class EventBusRabbitMQ  implements EventBus
 
     private $deserializer;
 
-    public static $EVENT_LOG_DATABASE = 'IntegrationEventLog';
+    public static $EVENT_LOG_TABLE = 'IntegrationEventLog';
+
+    public static $RUN_MIGRATION = true;
+
+    private $eventLogger;
 
 
-    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver)
+    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver, EventLogger $eventLogger)
     {
         $this->connectionManager = $connectionManager;
         $this->logger = $logger;
@@ -72,6 +77,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->publisher_id = $this->generatePublisherId();
         $this->eventResolver = $resolver;
         $this->deserializer = new JSONDeserializer();
+        $this->eventLogger = $eventLogger;
         register_shutdown_function(array($this, 'dispose'));
         static::$EVENT_NAME_DEL = app()->getNamespace().static::$NAME_SPACE.'\Events\\';
     }
@@ -101,7 +107,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->subscriptionManager->removeSubscription($event_key, $handler);
     }
 
-    public function publish(Event $event)
+    public function publish(Event $event, $logIt=true)
     {
         if (!$this->connectionManager->isConnected()) {
             $this->connectionManager->tryConnect();
@@ -113,10 +119,13 @@ class EventBusRabbitMQ  implements EventBus
         $event->setEventName($this->getEventName($event));
         $message = json_encode($event);
         $amqp_msg = new AMQPMessage($message, array('delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT));
-        $this->transientHandler->execute(function () use($amqp_msg, $event_ext) {
+        $this->transientHandler->execute(function () use ($amqp_msg, $event_ext) {
             $this->rabbit_publish_channel->basic_publish($amqp_msg, $event_ext);
         });
+        if ($logIt) $this->eventLogger->saveEventAndMarkItAsPublished($event);
     }
+
+
 
     public function dispose()
     {

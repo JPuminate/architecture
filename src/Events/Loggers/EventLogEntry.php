@@ -25,7 +25,7 @@ class EventLogEntry
         $this->eventId = $event->getId();
         $this->creationTime = $event->getCreationDate();
         $this->eventType = $event->getEventName();
-        $this->content = Event::deserialize($event);
+        $this->content = json_encode($event);
         $this->state = EventState::$NOT_PUBLISHED;
         $this->timeSent = 0;
     }
@@ -65,7 +65,7 @@ class EventLogEntry
     /**
      * @return Event
      */
-    public function getContent(): Event
+    public function getContent()
     {
         return $this->content;
     }
