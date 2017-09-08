@@ -25,8 +25,6 @@ use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
 use Psr\Log\LoggerInterface;
 
-require_once __DIR__.'\..\vendor\autoload.php';
-
 class EventBusRabbitMQServiceProvider extends ServiceProvider
 {
 
@@ -34,11 +32,13 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
 
 
 
-    public function boot(){
-        if($this->app->runningInConsole()){
+    public function boot()
+    {
+        if ($this->app->runningInConsole()) {
             $this->registerCommands();
             $this->_publishes();
         }
+
     }
 
     private function _publishes(){
@@ -59,6 +59,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
 
     public function register(){
         $config = config(static::$configFile);
+        if(is_null($config)) throw new \RuntimeException("No existed eventbus configuration file !");
         $this->registerConnectionManager($config);
         $this->registerEventBusInstance($config);
         $this->registerEventBusManager();
