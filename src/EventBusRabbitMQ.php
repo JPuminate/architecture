@@ -59,6 +59,8 @@ class EventBusRabbitMQ  implements EventBus
 
     private $deserializer;
 
+    public static $EVENT_LOG_DATABASE = 'IntegrationEventLog';
+
 
     public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver)
     {
