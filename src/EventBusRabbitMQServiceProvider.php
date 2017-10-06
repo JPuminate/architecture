@@ -25,7 +25,6 @@ use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
 use Psr\Log\LoggerInterface;
 
-require_once __DIR__.'\..\vendor\autoload.php';
 
 class EventBusRabbitMQServiceProvider extends ServiceProvider
 {

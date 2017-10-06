@@ -47,7 +47,7 @@ class DefaultRabbitMQConnectionManager implements RabbitMQConnectionManager
     public function tryConnect()
     {
         $this->logger->info("RabbitMQ Client is trying to connect");
-        $key = fopen(__DIR__ . '\eventbus.lock', 'w');
+        $key = fopen(__DIR__ . '/eventbus.lock', 'w');
         if (flock($key, LOCK_EX | LOCK_NB)) {
             $this->transientHandler->execute(function () {
                 $this->connection = $this->connectionFactory->createConnection();
