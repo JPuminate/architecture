@@ -223,7 +223,9 @@ class EventBusRabbitMQ  implements EventBus
                     $integrationEvent = $this->deserializer->deserialize($this->getEventClassName($event->event_name), $event);
                     if ($integrationEvent->getPusherId() != $this->publisher_id) {
                         $handlerInstance = $this->handlerMaker->make($handler);
-                        if ($handlerInstance->filter($integrationEvent)) $handlerInstance->processEvent($integrationEvent);
+                        if (method_exists($handlerInstance, 'filter'))
+                            if ($handlerInstance->filter($integrationEvent)) $handlerInstance->processEvent($integrationEvent);
+                            else $handlerInstance->processEvent($integrationEvent);
                     }
                 }
                 catch(\Exception $e){
