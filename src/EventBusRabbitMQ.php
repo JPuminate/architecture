@@ -20,6 +20,7 @@ use JPuminate\Architecture\EventBus\Serialization\JSONDeserializer;
 use JPuminate\Contracts\EventBus\EventBus;
 use JPuminate\Contracts\EventBus\Events\Event;
 use JPuminate\Contracts\EventBus\Events\IntegrationEvent;
+use JPuminate\Contracts\EventBus\Subscriptions\InMemoryEventBusSubscriptionManager;
 use JPuminate\Contracts\EventBus\Subscriptions\SubscriptionManager;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Log\LoggerInterface;
@@ -86,6 +87,8 @@ class EventBusRabbitMQ  implements EventBus
         }
         register_shutdown_function(array($this, 'dispose'));
         static::$EVENT_NAME_DEL = app()->getNamespace().static::$NAME_SPACE.'\Events\\';
+        if($this->subscriptionManager instanceof InMemoryEventBusSubscriptionManager)
+            $this->subscriptionManager->setBaseNamespace(static::$EVENT_NAME_DEL);
     }
 
 
