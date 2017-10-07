@@ -251,7 +251,7 @@ class EventBusRabbitMQ  implements EventBus
     private function getEventName($event)
     {
         $array = explode(static::$EVENT_NAME_DEL, get_class($event));
-        return strtolower(end($array));
+        return end($array);
     }
 
     public function getEventClassName($event_name)
