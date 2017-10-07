@@ -99,7 +99,7 @@ class EventBusRabbitMQServiceProvider extends ServiceProvider
                     $this->app->make(RabbitMQConnectionManager::class),
                     $this->app->make(LoggerInterface::class),
                     $subscription_manager,
-                    new ContainerBasedHandlerMaker(),
+                    new ContainerBasedEventBusListenerMaker(),
                     new GithubEventResolver($resolver_options['username'], $resolver_options['repository'], $resolver_options['reference'], $resolver_options['path'], $resolver_options['pattern']),
                     new DBEventLogger(),
                     $asyncOptions

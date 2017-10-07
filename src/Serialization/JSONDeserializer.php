@@ -11,12 +11,17 @@ namespace JPuminate\Architecture\EventBus\Serialization;
 class JSONDeserializer
 {
 
-    public function deserialize($type, $json)
+    public function deserialize($type, $payload)
     {
-        if (!class_exists($type)) throw new \RuntimeException("class not existe");
+        if (!class_exists($type)) throw new \RuntimeException("class not exist");
         try {
-            $object = new $type();
-            $object->promote($json);
+            $reflector = new \ReflectionClass($type);
+            $object = $reflector->newInstanceWithoutConstructor();
+            $properties = $reflector->getProperties();
+            foreach ($properties as $property) {
+                $property->setAccessible(true);
+                $property->setValue($object, $payload->{$property->getName()});
+            }
             return $object;
         } catch (\Exception $e) {
             throw new \RuntimeException("error deserialization");

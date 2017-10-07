@@ -12,7 +12,7 @@ namespace JPuminate\Architecture\EventBus;
 use Illuminate\Container\Container;
 use JPuminate\Contracts\EventBus\EventHandler;
 
-class ContainerBasedHandlerMaker implements HandlerMaker
+class ContainerBasedEventBusListenerMaker implements HandlerMaker
 {
 
     public function make($handler): EventHandler
