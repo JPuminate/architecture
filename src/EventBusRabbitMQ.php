@@ -229,6 +229,7 @@ class EventBusRabbitMQ  implements EventBus
                     }
                 }
                 catch(\Exception $e){
+                    $this->logger->error($e);
                     \Illuminate\Support\Facades\Event::dispatch(new DeserializationErrorEvent($event, $e));
                 }
             }
