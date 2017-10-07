@@ -70,7 +70,7 @@ class EventBusRabbitMQ  implements EventBus
     private $async = ['queue' => 'default', 'connection' => 'database'];
 
 
-    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, HandlerMaker $handlerMaker, EventResolver $resolver, EventLogger $eventLogger, $asyncOptions=null)
+    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, EventBusListenerMaker $handlerMaker, EventResolver $resolver, EventLogger $eventLogger, $asyncOptions=null)
     {
         $this->connectionManager = $connectionManager;
         $this->logger = $logger;

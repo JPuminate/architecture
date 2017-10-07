@@ -9,9 +9,7 @@
 namespace JPuminate\Architecture\EventBus;
 
 
-use JPuminate\Contracts\EventBus\EventHandler;
-
-interface HandlerMaker
+interface EventBusListenerMaker
 {
-    public function make($handler): EventHandler;
+    public function make($handler): EventBusListener;
 }

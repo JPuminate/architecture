@@ -11,10 +11,10 @@ namespace JPuminate\Architecture\EventBus;
 
 use JPuminate\Contracts\EventBus\EventHandler;
 
-class DefaultEventBusListenerMaker implements HandlerMaker
+class DefaultEventBusListenerMaker implements EventBusListenerMaker
 {
 
-    public function make($handler): EventHandler
+    public function make($handler): EventBusListener
     {
         return new $handler();
     }
