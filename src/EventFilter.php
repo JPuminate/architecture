@@ -11,11 +11,5 @@ namespace JPuminate\Architecture\EventBus;
 
 trait EventFilter
 {
-    public function filter(){
-        return true;
-    }
 
-    public function processEvent(){
-        return true;
-    }
 }
