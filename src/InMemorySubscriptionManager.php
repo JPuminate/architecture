@@ -8,10 +8,9 @@
 
 namespace JPuminate\Architecture\EventBus;
 
-
 use JPuminate\Contracts\EventBus\Subscriptions\SubscriptionManager;
 
-class InMemoryEventBusSubscriptionManager implements SubscriptionManager
+class InMemorySubscriptionManager implements SubscriptionManager
 {
     private $handlers;
     private $events;
@@ -41,7 +40,7 @@ class InMemoryEventBusSubscriptionManager implements SubscriptionManager
         if(!$this->hasSubscriptionsForEvent($event_key)){
             $this->handlers[$event_key] = [];
         }
-        if(in_array($handler, $this->handlers[$event])){
+        if(in_array($handler, $this->handlers[$event_key])){
             throw new \InvalidArgumentException(sprintf("Handler Type %s already registered for '%s'", $handler, $event));
         }
         array_push($this->handlers[$event_key], $handler);
@@ -76,25 +75,27 @@ class InMemoryEventBusSubscriptionManager implements SubscriptionManager
     {
         if(!$isKey) $event_key = $this->getEventKey($arg);
         else $event_key = $arg;
-        return $this->handlers[$event_key];
+        if(array_key_exists($event_key, $this->handlers)) return $this->handlers[$event_key];
+        else return null;
     }
     public function getEventKey($event)
     {
-       /* if (is_string($event) || $event instanceof IntegrationEvent) {
-            if ($event instanceof IntegrationEvent) $event = get_class($event);
-            $event_key = strtolower(str_replace('\\', '.', $event));
-            return str_replace($this->event_base , '', $event_key);
-        } else  throw new \Exception("unsupported event type");*/
-       return "key";
+        $reflector = new \ReflectionClass($event);
+        $object = $reflector->newInstanceWithoutConstructor();
+        if(method_exists($object, 'publishedOn') && method_exists($object, 'publishedAs'))
+        return $object->publishedOn() . '@' . $object->publishedAs();
+        else throw new \InvalidArgumentException("Unsupported event type");
     }
     public function getEventTypeFromKey($event_key)
     {
         return $this->events[$event_key];
     }
+
     public function getSubscriptionKey()
     {
         return $this->subscription_key;
     }
+
     private function gen_uuid()
     {
         return sprintf('%04x%04x-%04x-%04x',
