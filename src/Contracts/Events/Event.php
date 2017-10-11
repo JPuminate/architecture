@@ -20,18 +20,23 @@ abstract class Event implements IntegrationEvent, JsonSerializable
 
     protected $sender;
 
+    protected $event_identity;
+
     protected $event_name;
     /**
      * @var null
      */
     protected $pusher_id;
 
+    private $reflector;
+
     public function __construct($sender=null, $pusher_id=null)
     {
+        $this->reflector = new \ReflectionClass($this);
         $this->id = uniqid();
         $this->creation_date = date("Y/m/d H:i:sP");
         $this->sender = $sender;
-        $this->event_name = static::class;
+        $this->event_name = $this->reflector->getShortName();
         $this->pusher_id = $pusher_id;
     }
 
@@ -61,7 +66,7 @@ abstract class Event implements IntegrationEvent, JsonSerializable
     function jsonSerialize()
     {
         $map = [];
-        $properties = (new ReflectionClass($this))->getProperties();
+        $properties = $this->reflector->getProperties();
         foreach ($properties as $property) {
             $property->setAccessible(true);
             $map[$property->getName()] = $property->getValue($this);
@@ -80,9 +85,9 @@ abstract class Event implements IntegrationEvent, JsonSerializable
     /**
      * @param string $event_name
      */
-    public function setEventName(string $event_name)
+    public function setEventIdentity(string $event_identity)
     {
-        $this->event_name = $event_name;
+        $this->event_identity = $event_identity;
     }
 
     /**
@@ -104,9 +109,9 @@ abstract class Event implements IntegrationEvent, JsonSerializable
     /**
      * @return string
      */
-    public function getEventName(): string
+    public function getEventIdentity(): string
     {
-        return $this->event_name;
+        return $this->event_identity;
     }
 
     /**
@@ -119,8 +124,8 @@ abstract class Event implements IntegrationEvent, JsonSerializable
 
     public function publishedAs()
     {
-        $reflector = new \ReflectionClass($this);
-        return strtolower($reflector->getShortName());
+        if (is_null($this->reflector)) $this->reflector = new ReflectionClass($this);
+        return strtolower($this->reflector->getShortName());
     }
 
     public function publishedOn(){

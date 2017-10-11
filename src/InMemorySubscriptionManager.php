@@ -15,20 +15,13 @@ class InMemorySubscriptionManager implements SubscriptionManager
     private $handlers;
     private $events;
     private $subscription_key;
-    private $base_namespace;
-    private $event_base;
 
-    public function __construct($base_namespace="")
+
+    public function __construct()
     {
-        $this->base_namespace = $base_namespace;
-        $this->event_base = strtolower(str_replace('\\','.', $this->base_namespace));
         $this->handlers = [];
         $this->events = [];
         $this->subscription_key = $this->gen_uuid();
-    }
-    public function setBaseNamespace($base_namespace){
-        $this->base_namespace = $base_namespace;
-        $this->event_base = strtolower(str_replace('\\','.', $this->base_namespace));
     }
     public function isEmpty()
     {
