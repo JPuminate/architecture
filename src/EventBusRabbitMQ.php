@@ -81,14 +81,11 @@ class EventBusRabbitMQ  implements EventBus
         $this->eventResolver = $resolver;
         $this->deserializer = new JSONDeserializer();
         $this->eventLogger = $eventLogger;
-        if($asyncOptions){
-            if(array_key_exists('queue', $asyncOptions)) $this->async['queue'] = $asyncOptions['queue'];
-            if(array_key_exists('connection', $asyncOptions)) $this->async['connection'] = $asyncOptions['connection'];
+        if ($asyncOptions) {
+            if (array_key_exists('queue', $asyncOptions)) $this->async['queue'] = $asyncOptions['queue'];
+            if (array_key_exists('connection', $asyncOptions)) $this->async['connection'] = $asyncOptions['connection'];
         }
         register_shutdown_function(array($this, 'dispose'));
-        static::$EVENT_NAME_DEL = app()->getNamespace().static::$NAME_SPACE.'\Events\\';
-        if($this->subscriptionManager instanceof InMemoryEventBusSubscriptionManager)
-            $this->subscriptionManager->setBaseNamespace(static::$EVENT_NAME_DEL);
     }
 
 
@@ -105,9 +102,8 @@ class EventBusRabbitMQ  implements EventBus
 
     public function subscribe($event, $handler)
     {
-        $event_key = $this->subscriptionManager->getEventKey($event);
-        $this->subscriptionManager->addSubscription($event_key, $handler);
-        $this->doInternalSubscription($event_key);
+        $this->subscriptionManager->addSubscription($event, $handler);
+        $this->doInternalSubscription($event);
     }
 
     public function unSubscribe($event, $handler)
@@ -125,7 +121,8 @@ class EventBusRabbitMQ  implements EventBus
         $this->rabbit_publish_channel = $this->connectionManager->createChannel(static::$PUBLISH_CHANNEL_ID);
         $this->rabbit_publish_channel->exchange_declare($event_ext, 'fanout', false, true, false);
         $event->setPusherId($this->publisher_id);
-        $event->setEventName($this->getEventName($event));
+        $event->setEventIdentity($this->subscriptionManager->getEventKey($event));
+        $event->setSender("??");
         $message = json_encode($event);
         $amqp_msg = new AMQPMessage($message, array('delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT));
         $this->transientHandler->execute(function () use ($amqp_msg, $event_ext) {
@@ -155,13 +152,15 @@ class EventBusRabbitMQ  implements EventBus
         $this->dispose();
     }
 
-    private function doInternalSubscription($event_key)
+    private function doInternalSubscription($event)
     {
         if (!$this->connectionManager->isConnected()) {
             $this->connectionManager->tryConnect();
         }
+        // channel@event
+        $event_key = $this->subscriptionManager->getEventKey($event);
         $this->rabbit_subscribe_channel = $this->connectionManager->createChannel(static::$SUBSCRIBE_CHANNEL_ID);
-        $this->rabbit_subscribe_channel->exchange_declare($ext = $this->getEventExchangeName($event_key),'fanout', false, true, false);
+        $this->rabbit_subscribe_channel->exchange_declare($ext = $this->getEventExchangeName($event),'fanout', false, true, false);
         $queue_name = $this->getSubscriptionQueueName($event_key);
         $this->rabbit_subscribe_channel->queue_declare($queue_name, false, true, false, false);
         $this->rabbit_subscribe_channel->queue_bind($queue_name, $ext);
@@ -197,12 +196,7 @@ class EventBusRabbitMQ  implements EventBus
     }
 
     private function getEventExchangeName($event){
-
-        if($event instanceof IntegrationEvent) {
-            $name = 'events.'.$this->subscriptionManager->getEventKey($event);
-        }
-        else $name = 'events.'.$event;
-        return $name;
+        return 'events.'.$this->subscriptionManager->getEventKey($event);
     }
 
     public function listen(){
@@ -215,7 +209,7 @@ class EventBusRabbitMQ  implements EventBus
 
     private function processEvent($event)
     {
-        $event_key = $this->subscriptionManager->getEventKey($event->event_name);
+        $event_key = $this->subscriptionManager->getEventKey($event->event_identity);
         if($this->subscriptionManager->hasSubscriptionsForEvent($event_key)){
             $handlers = $this->subscriptionManager->getHandlersForEvent($event_key);
             foreach ($handlers as $handler){

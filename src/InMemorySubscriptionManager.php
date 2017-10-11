@@ -8,6 +8,7 @@
 
 namespace JPuminate\Architecture\EventBus;
 
+use JPuminate\Contracts\EventBus\Events\IntegrationEvent;
 use JPuminate\Contracts\EventBus\Subscriptions\SubscriptionManager;
 
 class InMemorySubscriptionManager implements SubscriptionManager
@@ -73,8 +74,11 @@ class InMemorySubscriptionManager implements SubscriptionManager
     }
     public function getEventKey($event)
     {
-        $reflector = new \ReflectionClass($event);
-        $object = $reflector->newInstanceWithoutConstructor();
+        if($event instanceof IntegrationEvent) $object = $event;
+        else {
+            $reflector = new \ReflectionClass($event);
+            $object = $reflector->newInstanceWithoutConstructor();
+        }
         if(method_exists($object, 'publishedOn') && method_exists($object, 'publishedAs'))
         return $object->publishedOn() . '@' . $object->publishedAs();
         else throw new \InvalidArgumentException("Unsupported event type");
