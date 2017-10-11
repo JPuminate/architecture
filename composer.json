@@ -8,7 +8,6 @@
     ],
     "require": {
         "php": ">=7.0",
-        "jpuminate/contracts": "^1.0",
         "php-amqplib/php-amqplib": "^2.6",
         "psr/log": "^1.0",
         "crazycodr/standard-exceptions": "^2.1",
@@ -26,7 +25,9 @@
     },
     "autoload": {
         "psr-4": {
-            "JPuminate\\Architecture\\EventBus\\": "src/"
+            "JPuminate\\Architecture\\EventBus\\": "src/",
+            "JPuminate\\Contracts\\EventBus\\": "src/Contracts/",
+            "Test\\": "test/"
         }
     },
     "license": "MIT"
