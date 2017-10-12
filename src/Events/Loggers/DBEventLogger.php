@@ -22,7 +22,7 @@ class DBEventLogger implements EventLogger
         return DB::table(EventBusRabbitMQ::$EVENT_LOG_TABLE)->insert([
             'event_id' => $entry->getEventId(),
             'creation_time' => $entry->getCreationTime(),
-            'event_type' => $entry->getEventType(),
+            'event_type' => $entry->getEventIdentity(),
             'event_state' => $entry->getState(),
             'event_payload' => $entry->getContent(),
             'time_sent' => $entry->getTimeSent()
@@ -36,7 +36,7 @@ class DBEventLogger implements EventLogger
         return DB::table(EventBusRabbitMQ::$EVENT_LOG_TABLE)->insert([
             'event_id' => $entry->getEventId(),
             'creation_time' => $entry->getCreationTime(),
-            'event_type' => $entry->getEventType(),
+            'event_type' => $entry->getEventIdentity(),
             'event_state' => $entry->getState(),
             'event_payload' => $entry->getContent(),
             'time_sent' => $entry->getTimeSent()

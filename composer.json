@@ -26,8 +26,7 @@
     "autoload": {
         "psr-4": {
             "JPuminate\\Architecture\\EventBus\\": "src/",
-            "JPuminate\\Contracts\\EventBus\\": "src/Contracts/",
-            "Test\\": "test/"
+            "JPuminate\\Contracts\\EventBus\\": "src/Contracts/"
         }
     },
     "license": "MIT"

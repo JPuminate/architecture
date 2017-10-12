@@ -15,7 +15,7 @@ class EventLogEntry
 {
     private $eventId;
     private $creationTime;
-    private $eventType;
+    private $eventIdentity;
     private $content;
     private $state;
     private $timeSent;
@@ -24,7 +24,7 @@ class EventLogEntry
     {
         $this->eventId = $event->getId();
         $this->creationTime = $event->getCreationDate();
-        $this->eventType = $event->getEventName();
+        $this->eventIdentity = $event->getEventIdentity();
         $this->content = json_encode($event);
         $this->state = EventState::$NOT_PUBLISHED;
         $this->timeSent = 0;
@@ -57,9 +57,9 @@ class EventLogEntry
     /**
      * @return string
      */
-    public function getEventType(): string
+    public function getEventIdentity(): string
     {
-        return $this->eventType;
+        return $this->eventIdentity;
     }
 
     /**
