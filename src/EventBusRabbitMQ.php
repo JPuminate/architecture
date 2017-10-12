@@ -67,10 +67,12 @@ class EventBusRabbitMQ  implements EventBus
 
     private $eventLogger;
 
+    private $reflexive;
+
     private $async = ['queue' => 'default', 'connection' => 'database'];
 
 
-    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, EventBusListenerMaker $handlerMaker, EventResolver $resolver, EventLogger $eventLogger, $asyncOptions=null)
+    public function __construct(RabbitMQConnectionManager $connectionManager, LoggerInterface $logger, SubscriptionManager $subscriptionManager, EventBusListenerMaker $handlerMaker, EventLogger $eventLogger,EventResolver $resolver = null, $reflexive = true,  $asyncOptions=null)
     {
         $this->connectionManager = $connectionManager;
         $this->logger = $logger;
@@ -81,6 +83,7 @@ class EventBusRabbitMQ  implements EventBus
         $this->eventResolver = $resolver;
         $this->deserializer = new JSONDeserializer();
         $this->eventLogger = $eventLogger;
+        $this->reflexive = $reflexive;
         if ($asyncOptions) {
             if (array_key_exists('queue', $asyncOptions)) $this->async['queue'] = $asyncOptions['queue'];
             if (array_key_exists('connection', $asyncOptions)) $this->async['connection'] = $asyncOptions['connection'];
@@ -209,17 +212,18 @@ class EventBusRabbitMQ  implements EventBus
 
     private function processEvent($event)
     {
-        $event_key = $this->subscriptionManager->getEventKey($event->event_identity);
-        if($this->subscriptionManager->hasSubscriptionsForEvent($event_key)){
-            $handlers = $this->subscriptionManager->getHandlersForEvent($event_key);
+        if($this->subscriptionManager->hasSubscriptionsForEvent($event->event_identity)){
+            $handlers = $this->subscriptionManager->getHandlersForEvent($event->event_identity, true);
             foreach ($handlers as $handler){
                 try {
-                    $integrationEvent = $this->deserializer->deserialize($this->getEventClassName($event->event_name), $event);
-                    if ($integrationEvent->getPusherId() != $this->publisher_id) {
+                    $event_class = $this->subscriptionManager->getEventTypeFromKey($event->event_identity);
+                    if(is_null($event_class)) throw new \RuntimeException("Not matched event with all those subscribers to");
+                    $integrationEvent = $this->deserializer->deserialize($event_class, $event);
+                    if ($integrationEvent->getPusherId() != $this->publisher_id || !$this->reflexive) {
                         $handlerInstance = $this->handlerMaker->make($handler);
-                        if (method_exists($handlerInstance, 'filter'))
+                        if (method_exists($handlerInstance, 'filter')) {
                             if ($handlerInstance->filter($integrationEvent)) $handlerInstance->processEvent($integrationEvent);
-                            else $handlerInstance->processEvent($integrationEvent);
+                        } else $handlerInstance->processEvent($integrationEvent);
                     }
                 }
                 catch(\Exception $e){

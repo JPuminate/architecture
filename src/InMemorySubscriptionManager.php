@@ -85,7 +85,8 @@ class InMemorySubscriptionManager implements SubscriptionManager
     }
     public function getEventTypeFromKey($event_key)
     {
-        return $this->events[$event_key];
+        if(array_key_exists($event_key, $this->events)) return $this->events[$event_key];
+        return null;
     }
 
     public function getSubscriptionKey()
