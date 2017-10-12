@@ -18,7 +18,7 @@ class CreateIntegrationEventTable extends Migration
             $table->string('creation_time', 27);
             $table->string('event_type');
             $table->integer('event_state');
-            $table->string('event_payload');
+            $table->string('event_payload', 1500);
             $table->integer('time_sent');
         });
     }

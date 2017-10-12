@@ -79,8 +79,8 @@ class InMemorySubscriptionManager implements SubscriptionManager
             $reflector = new \ReflectionClass($event);
             $object = $reflector->newInstanceWithoutConstructor();
         }
-        if(method_exists($object, 'publishedOn') && method_exists($object, 'publishedAs'))
-        return $object->publishedOn() . '@' . $object->publishedAs();
+        if(method_exists($object, 'publishOn') && method_exists($object, 'publishAs'))
+        return $object->publishOn() . '@' . $object->publishAs();
         else throw new \InvalidArgumentException("Unsupported event type");
     }
     public function getEventTypeFromKey($event_key)

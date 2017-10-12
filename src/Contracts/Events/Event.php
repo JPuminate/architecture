@@ -122,13 +122,13 @@ abstract class Event implements IntegrationEvent, JsonSerializable
         return $this->pusher_id;
     }
 
-    public function publishedAs()
+    public function publishAs()
     {
         if (is_null($this->reflector)) $this->reflector = new ReflectionClass($this);
         return strtolower($this->reflector->getShortName());
     }
 
-    public function publishedOn(){
+    public function publishOn(){
         return "default";
     }
 
